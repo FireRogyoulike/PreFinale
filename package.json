@@ -8,5 +8,16 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": ""
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FireRogyoulike/PreFinale.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FireRogyoulike/PreFinale/issues"
+  },
+  "homepage": "https://github.com/FireRogyoulike/PreFinale#readme",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }
