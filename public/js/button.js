@@ -13,32 +13,56 @@ const segmentCode = [
     document.getElementById("segment_8"),
 ]
 
+const defaultButtonSrc = button.src; // Исходное изображение кнопки
+const successButtonSrc = "assets/button_green.png"; // Изображение при успешном ответе
+const errorButtonSrc = "assets/button_red.png"; // Изображение при ошибке
+
+let isButtonActive = true; // Флаг активности кнопки
+
 button.addEventListener('click', () => {
-    if (state) {
+    if (state && isButtonActive) {
+        isButtonActive = false;
         let code = "";
         segmentCode.forEach((segment) => {
             const segment_src = segment.src.split('/').pop();
-            const segmentIndex = segmentList.indexOf(segment_src); 
+            const segmentIndex = segmentList.indexOf(segment_src);
             code += segmentIndex;
-    });
-    console.log(code);
-    sendToServer(code);
+        });
+        sendToServer(code);
     }
 });
 
 function sendToServer(code) {
-    fetch('/your-server-endpoint', {  
+    fetch('/check-code', {  
         method: 'POST',  
         headers: {  
             'Content-Type': 'application/json'  
         },
-        body: JSON.stringify({ message: dataString })
+        body: JSON.stringify({ message: code })
     })
-    .then(response => response.json())  // Преобразуем ответ в JSON
+    .then(response => response.json())
     .then(data => {  
-        console.log('Успех:', data);  // Выводим успешный ответ
+        console.log('Ответ сервера:', data);
+
+        if (data.valid) {
+            changeButtonSprite(successButtonSrc);
+        } else {
+            changeButtonSprite(errorButtonSrc);
+        }
     })
     .catch(error => {  
-        console.error('Ошибка:', error);  // Выводим ошибку, если что-то пошло не так
+        console.error('Ошибка:', error);
+        changeButtonSprite(errorButtonSrc);
     });
+}
+
+// Функция смены спрайта кнопки
+function changeButtonSprite(newSrc) {
+    button.src = newSrc;
+    button.style.pointerEvents = "none"; // Блокируем кнопку
+    setTimeout(() => {
+        button.src = defaultButtonSrc; // Возвращение кнопки в исходное состояние
+        button.style.pointerEvents = "auto"; // Разблокировка кнопки
+        isButtonActive = true; // Кнопка снова активна
+    }, 800);
 }
