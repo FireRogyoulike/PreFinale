@@ -1,0 +1,107 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    user-select: none;
+}
+
+img {
+    user-drag: none;
+    -webkit-user-drag: none;
+}
+
+html, body {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-container {
+    position: relative;
+    width: fit-content;
+    height: fit-content;
+}
+
+.pixel-art {
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    position: absolute;
+    transform: translate(-50%, -50%) scale(4);
+    transform-origin: center;
+}
+
+#machine {
+    position: relative;
+    transform: scale(4); 
+    transform-origin: center;
+}
+
+#fly {
+    left: 462px;
+    top: 130px;
+}
+
+#doors {
+    right: 360px;
+    top: 54px;
+}
+
+#UI {
+    top: 398px;
+    right: 278px;  
+}
+
+#button {
+    top: 462px;
+    right: 362px;  
+}
+
+#segment_1 {
+    top: 362px;
+    right: 582px;  
+}
+
+#segment_2 {
+    top: 362px;
+    right: 526px;  
+}
+
+#segment_3 {
+    top: 362px;
+    right: 470px;  
+}
+
+#segment_4 {
+    top: 362px;
+    right: 414px;  
+}
+
+#segment_5 {
+    top: 362px;
+    right: 358px;  
+}
+
+#segment_6 {
+    top: 362px;
+    right: 302px;  
+}
+
+#segment_7 {
+    top: 362px;
+    right: 246px;  
+}
+
+#segment_8 {
+    top: 362px;
+    right: 190px;  
+}
+
+.hidden {
+    display: none;
+}
+
+
