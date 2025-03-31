@@ -41,11 +41,9 @@ function sendToServer(code) {
         body: JSON.stringify({ message: code })
     })
     .then(response => response.json())
-    .then(data => {  
-        console.log('Ответ сервера:', data);
-
+    .then(data => {
         if (data.valid) {
-            changeButtonSprite(successButtonSrc);
+            changeButtonSprite(data.valid, successButtonSrc);
             applyChanges(data.door, data.doorsStyle, data.red_button, data.red_button_pressed, data.buttonStyle, data.effectStyle);
         } else {
             changeButtonSprite(errorButtonSrc);
@@ -57,13 +55,21 @@ function sendToServer(code) {
 }
 
 // Функция смены спрайта кнопки
-function changeButtonSprite(newSrc) {
+function changeButtonSprite(iswillDelete, newSrc) {
     button.src = newSrc;
     button.style.pointerEvents = "none"; // Блокируем кнопку
     setTimeout(() => {
+        if (iswillDelete){
+            const elements = document.querySelectorAll('.hidden');
+            elements.forEach(element => {
+                element.remove();
+            });
+
+        } else {
         button.src = defaultButtonSrc; // Возвращение кнопки в исходное состояние
         button.style.pointerEvents = "auto"; // Разблокировка кнопки
         isButtonActive = true; // Кнопка снова активна
+        }
     }, 800);
 }
 
