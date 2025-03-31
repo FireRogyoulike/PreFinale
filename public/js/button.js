@@ -89,6 +89,17 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     }
     document.getElementById("flex-container").appendChild(effect);
 
+    // Анимация
+    //const anim = document.createElement("img");
+    //anim.id = "anim";
+    //anim.classList.add("pixel-art");
+    //for (const style in animStyle) {
+    //    if (animStyle.hasOwnProperty(style)) {
+    //        anim.style[style] = animStyle[style];
+    //    }
+    //}
+    document.getElementById("flex-container").appendChild(effect);
+
     // Красная кнопка
     const redButton = document.createElement("img");
     redButton.id = "red_button";
@@ -123,7 +134,6 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     document.getElementById("flex-container").appendChild(redButton);
 
     // Обработка анимации эффекта
-
     let animationPlayed = false;
 
     function startAnimation(frameCount, frameRate = 100) {
@@ -136,10 +146,31 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
             if (currentFrame >= frameCount) {
                 clearInterval(animationInterval);
                 effect.remove();
+                startSecondAnimation();
                 return;
             }
             
             effect.src = `/get-frame?frame=${currentFrame}`;
+            currentFrame++;
+        }, frameRate);
+    }
+
+    function startSecondAnimation() {
+    
+        let currentFrame = 0;
+        const frameCount = 12; 
+        const frameRate = 100;
+        
+        document.getElementById("fly").remove;
+
+        const animationInterval = setInterval(() => {
+            if (currentFrame >= frameCount) {
+                clearInterval(animationInterval);
+                anim.remove();
+                return;
+            }
+    
+            anim.src = `/get-frame?frame=${currentFrame}`;
             currentFrame++;
         }, frameRate);
     }
