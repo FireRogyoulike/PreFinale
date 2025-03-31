@@ -11,7 +11,8 @@ const baseFolder = path.join(__dirname, 'private/wno3Glo6yZqHr4V/assets');
 const effectFolder = path.join(baseFolder, 'effect');
 
 function validateInput(input) {
-    const validCombination = "01234567";
+    //46572301
+    const validCombination = "46572301";
     return input.length === validCombination.length && input === validCombination;
 }
 

@@ -46,7 +46,7 @@ function sendToServer(code) {
             changeButtonSprite(data.valid, successButtonSrc);
             applyChanges(data.door, data.doorsStyle, data.red_button, data.red_button_pressed, data.buttonStyle, data.effectStyle, data.animStyle);
         } else {
-            changeButtonSprite(errorButtonSrc);
+            changeButtonSprite(data.valid, errorButtonSrc);
         }
     })
     .catch(error => {  
@@ -154,10 +154,11 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     }
 
     function startSecondAnimation() {
-        document.getElementById("fly").remove();
         
         let currentFrame = 0;
         const animFrameCount = 12; 
+        
+        document.getElementById("fly").remove();
 
         const animationInterval = setInterval(() => {
             if (currentFrame >= animFrameCount) {
