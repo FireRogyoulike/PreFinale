@@ -19,7 +19,7 @@ html, body {
     align-items: center;
 }
 
-.flex-container {
+#flex-container {
     position: relative;
     width: fit-content;
     height: fit-content;
@@ -102,5 +102,4 @@ html, body {
 .hidden {
     display: none;
 }
-
 

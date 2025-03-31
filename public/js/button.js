@@ -14,8 +14,8 @@ const segmentCode = [
 ]
 
 const defaultButtonSrc = button.src; // Исходное изображение кнопки
-const successButtonSrc = "assets/button_green.png"; // Изображение при успешном ответе
-const errorButtonSrc = "assets/button_red.png"; // Изображение при ошибке
+const successButtonSrc = "assets/buttonGreen.png"; // Изображение при успешном ответе
+const errorButtonSrc = "assets/buttonRed.png"; // Изображение при ошибке
 
 let isButtonActive = true; // Флаг активности кнопки
 
@@ -46,13 +46,13 @@ function sendToServer(code) {
 
         if (data.valid) {
             changeButtonSprite(successButtonSrc);
+            applyChanges(data.door, data.doorsStyle, data.red_button, data.red_button_pressed, data.buttonStyle, data.effectStyle);
         } else {
             changeButtonSprite(errorButtonSrc);
         }
     })
     .catch(error => {  
         console.error('Ошибка:', error);
-        changeButtonSprite(errorButtonSrc);
     });
 }
 
@@ -65,4 +65,76 @@ function changeButtonSprite(newSrc) {
         button.style.pointerEvents = "auto"; // Разблокировка кнопки
         isButtonActive = true; // Кнопка снова активна
     }, 800);
+}
+
+// Применение серверных изменений
+function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonStyle, effectStyle) {
+    const doors = document.getElementById("doors");
+    const doorZ = window.getComputedStyle(doors).getPropertyValue('z-index');
+
+    // Эффект
+    const effect = document.createElement("img");
+    effect.id = "effect";
+    effect.classList.add("pixel-art");
+    for (const style in effectStyle) {
+        if (effectStyle.hasOwnProperty(style)) {
+            effect.style[style] = effectStyle[style];
+        }
+    }
+    document.getElementById("flex-container").appendChild(effect);
+
+    // Красная кнопка
+    const redButton = document.createElement("img");
+    redButton.id = "red_button";
+    redButton.src = `/get-image?file=${buttonSrc}`;
+    redButton.style.zIndex = parseInt(doorZ) - 1;
+    redButton.classList.add("pixel-art");
+    for (const style in buttonStyle) {
+        if (buttonStyle.hasOwnProperty(style)) {
+            redButton.style[style] = buttonStyle[style];
+        }
+    }
+    
+    // Отложенная загрузка двери, что бы кнопка прогрузилась
+    redButton.onload = function() {
+        doors.src = `/get-image?file=${doorFile}`;
+        for (const style in doorsStyle) {
+            if (doorsStyle.hasOwnProperty(style)) {
+                doors.style[style] = doorsStyle[style]; 
+            }
+        }
+    }
+    
+    // Анимация красной кнопки
+    redButton.addEventListener("click", function () {
+        redButton.src = "/get-image?file=" + buttonPressedSrc;
+        startAnimation(10,100);
+        setTimeout(() => {
+            redButton.src = "/get-image?file=" + buttonSrc;
+        }, 1000);
+    });
+
+    document.getElementById("flex-container").appendChild(redButton);
+
+    // Обработка анимации эффекта
+
+    animationPlayed = false;
+
+    function startAnimation(frameCount, frameRate = 100) {
+        if (animationPlayed) return;
+        const effect = document.getElementById("effect");
+    
+        let currentFrame = 0;
+    
+        const animationInterval = setInterval(() => {
+            if (currentFrame >= frameCount) {
+                clearInterval(animationInterval);
+                effect.remove();
+                return;
+            }
+            
+            effect.src = `/get-frame?frame=${currentFrame}`;
+            currentFrame++;
+        }, frameRate);
+    }
 }
