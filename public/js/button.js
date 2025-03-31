@@ -118,7 +118,7 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
 
     // Обработка анимации эффекта
 
-    animationPlayed = false;
+    let animationPlayed = false;
 
     function startAnimation(frameCount, frameRate = 100) {
         if (animationPlayed) return;
