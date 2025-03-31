@@ -44,7 +44,7 @@ function sendToServer(code) {
     .then(data => {
         if (data.valid) {
             changeButtonSprite(data.valid, successButtonSrc);
-            applyChanges(data.door, data.doorsStyle, data.red_button, data.red_button_pressed, data.buttonStyle, data.effectStyle);
+            applyChanges(data.door, data.doorsStyle, data.red_button, data.red_button_pressed, data.buttonStyle, data.effectStyle, data.animStyle);
         } else {
             changeButtonSprite(errorButtonSrc);
         }
@@ -55,16 +55,12 @@ function sendToServer(code) {
 }
 
 // Функция смены спрайта кнопки
-function changeButtonSprite(iswillDelete, newSrc) {
+function changeButtonSprite(isWillDelete, newSrc) {
     button.src = newSrc;
     button.style.pointerEvents = "none"; // Блокируем кнопку
     setTimeout(() => {
-        if (iswillDelete){
-            const elements = document.querySelectorAll('.hidden');
-            elements.forEach(element => {
-                element.remove();
-            });
-
+        if (isWillDelete){
+            document.querySelectorAll('.hidden').forEach(element => element.remove());
         } else {
         button.src = defaultButtonSrc; // Возвращение кнопки в исходное состояние
         button.style.pointerEvents = "auto"; // Разблокировка кнопки
@@ -74,7 +70,7 @@ function changeButtonSprite(iswillDelete, newSrc) {
 }
 
 // Применение серверных изменений
-function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonStyle, effectStyle) {
+function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonStyle, effectStyle, animStyle) {
     const doors = document.getElementById("doors");
     const doorZ = window.getComputedStyle(doors).getPropertyValue('z-index');
 
@@ -90,15 +86,15 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     document.getElementById("flex-container").appendChild(effect);
 
     // Анимация
-    //const anim = document.createElement("img");
-    //anim.id = "anim";
-    //anim.classList.add("pixel-art");
-    //for (const style in animStyle) {
-    //    if (animStyle.hasOwnProperty(style)) {
-    //        anim.style[style] = animStyle[style];
-    //    }
-    //}
-    document.getElementById("flex-container").appendChild(effect);
+    const anim = document.createElement("img");
+    anim.id = "anim";
+    anim.classList.add("pixel-art");
+    for (const style in animStyle) {
+        if (animStyle.hasOwnProperty(style)) {
+            anim.style[style] = animStyle[style];
+        }
+    }
+    document.getElementById("flex-container").appendChild(anim);
 
     // Красная кнопка
     const redButton = document.createElement("img");
@@ -125,7 +121,7 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     // Анимация красной кнопки
     redButton.addEventListener("click", function () {
         redButton.src = "/get-image?file=" + buttonPressedSrc;
-        startAnimation(10,100);
+        startEffect();
         setTimeout(() => {
             redButton.src = "/get-image?file=" + buttonSrc;
         }, 1000);
@@ -133,44 +129,44 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
 
     document.getElementById("flex-container").appendChild(redButton);
 
+    const frameRate = 100;
     // Обработка анимации эффекта
     let animationPlayed = false;
 
-    function startAnimation(frameCount, frameRate = 100) {
+    function startEffect() {
+        const effectframeCount = 10; 
         if (animationPlayed) return;
         const effect = document.getElementById("effect");
     
         let currentFrame = 0;
     
         const animationInterval = setInterval(() => {
-            if (currentFrame >= frameCount) {
+            if (currentFrame >= effectframeCount) {
                 clearInterval(animationInterval);
                 effect.remove();
                 startSecondAnimation();
                 return;
             }
             
-            effect.src = `/get-frame?frame=${currentFrame}`;
+            effect.src = `/get-frame?frame=${currentFrame}&type=effect`;
             currentFrame++;
         }, frameRate);
     }
 
     function startSecondAnimation() {
-    
-        let currentFrame = 0;
-        const frameCount = 12; 
-        const frameRate = 100;
+        document.getElementById("fly").remove();
         
-        document.getElementById("fly").remove;
+        let currentFrame = 0;
+        const animFrameCount = 12; 
 
         const animationInterval = setInterval(() => {
-            if (currentFrame >= frameCount) {
+            if (currentFrame >= animFrameCount) {
                 clearInterval(animationInterval);
                 anim.remove();
                 return;
             }
     
-            anim.src = `/get-frame?frame=${currentFrame}`;
+            anim.src = `/get-frame?frame=${currentFrame}&type=anim`;
             currentFrame++;
         }, frameRate);
     }

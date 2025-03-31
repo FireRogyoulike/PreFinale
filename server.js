@@ -12,7 +12,7 @@ const effectFolder = path.join(baseFolder, 'effect');
 
 function validateInput(input) {
     const validCombination = "01234567";
-    return input === validCombination;
+    return input.length === validCombination.length && input === validCombination;
 }
 
 app.post('/check-code', (req, res) => {
@@ -31,7 +31,7 @@ app.post('/check-code', (req, res) => {
             red_button_pressed: "redButtonPressed.png",
             buttonStyle: { right: "364px", top: "50px" },
             effectStyle: { left: "122px", top: "52px" },
-            animation: { frames: 10, frameRate: 100 }
+            animStyle: { left: "462px", bottom: "78px" },
         });
     } else {
         return res.json({ valid: false });
@@ -39,8 +39,8 @@ app.post('/check-code', (req, res) => {
 });
 
 function isValidFilePath(base, requested) {
-    const normalizedPath = path.normalize(path.join(base, requested));
-    return normalizedPath.startsWith(base);
+    const normalizedPath = path.resolve(base, requested);
+    return normalizedPath.startsWith(base + path.sep);
 }
 
 app.get('/get-image', (req, res) => {
@@ -56,19 +56,32 @@ app.get('/get-image', (req, res) => {
     });
 });
 
+const animFolder = path.join(baseFolder, 'anim');
+
 app.get('/get-frame', (req, res) => {
-    const { frame } = req.query;
-    if (!frame || isNaN(frame)) {
-        return res.status(400).json({ error: "Invalid frame number" });
+    const { frame, type } = req.query;
+    if (!frame || isNaN(frame) || !type) {
+        return res.status(400).json({ error: "Invalid frame number or missing type" });
     }
 
-    const frameFile = `electro${frame}.png`;
+    let folderPath;
+    let fileName;
 
-    if (!isValidFilePath(effectFolder, frameFile)) {
+    if (type === "effect") {
+        folderPath = path.join(baseFolder, 'effect');
+        fileName = `electro${frame}.png`;
+    } else if (type === "anim") {
+        folderPath = path.join(baseFolder, 'anim');
+        fileName = `flyСharged${frame}.png`;  // Замените `anim` на нужный префикс
+    } else {
+        return res.status(400).json({ error: "Invalid animation type" });
+    }
+
+    if (!isValidFilePath(folderPath, fileName)) {
         return res.status(403).json({ error: "Access denied" });
     }
 
-    const filePath = path.join(effectFolder, frameFile);
+    const filePath = path.join(folderPath, fileName);
     res.sendFile(filePath, (err) => {
         if (err) res.status(404).json({ error: "Frame not found" });
     });
