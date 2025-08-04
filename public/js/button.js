@@ -17,7 +17,7 @@ const defaultButtonSrc = button.src; // Исходное изображение 
 const successButtonSrc = "assets/buttonGreen.png"; // Изображение при успешном ответе
 const errorButtonSrc = "assets/buttonRed.png"; // Изображение при ошибке
 
-let isButtonActive = true; // Флаг активности кнопки
+let isButtonActive = true; 
 
 button.addEventListener('click', () => {
     if (state && isButtonActive) {
@@ -57,7 +57,7 @@ function sendToServer(code) {
 // Функция смены спрайта кнопки
 function changeButtonSprite(isWillDelete, newSrc) {
     button.src = newSrc;
-    button.style.pointerEvents = "none"; // Блокируем кнопку
+    button.style.pointerEvents = "none";
     setTimeout(() => {
         if (isWillDelete){
             document.querySelectorAll('.hidden').forEach(element => element.remove());

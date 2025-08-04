@@ -73,7 +73,7 @@ app.get('/get-frame', (req, res) => {
         fileName = `electro${frame}.png`;
     } else if (type === "anim") {
         folderPath = path.join(baseFolder, 'anim');
-        fileName = `flyСharged${frame}.png`;  // Замените `anim` на нужный префикс
+        fileName = `flyСharged${frame}.png`;
     } else {
         return res.status(400).json({ error: "Invalid animation type" });
     }
