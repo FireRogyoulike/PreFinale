@@ -69,12 +69,25 @@ function changeButtonSprite(isWillDelete, newSrc) {
     }, 800);
 }
 
-// Применение серверных изменений
+// Функция предзагрузки кадров анимации
+function preloadAnimationFrames(frameCount, type) {
+    const promises = [];
+    for (let i = 0; i < frameCount; i++) {
+        promises.push(new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error(`Failed to load frame ${i} for ${type}`));
+            img.src = `/get-frame?frame=${i}&type=${type}`;
+        }));
+    }
+    return Promise.all(promises);
+}
+
 function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonStyle, effectStyle, animStyle) {
     const doors = document.getElementById("doors");
     const doorZ = window.getComputedStyle(doors).getPropertyValue('z-index');
 
-    // Эффект
+    // Создаем элементы эффекта и анимации
     const effect = document.createElement("img");
     effect.id = "effect";
     effect.classList.add("pixel-art");
@@ -96,7 +109,7 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     }
     document.getElementById("flex-container").appendChild(anim);
 
-    // Красная кнопка
+    // Создаем красную кнопку
     const redButton = document.createElement("img");
     redButton.id = "red_button";
     redButton.src = `/get-image?file=${buttonSrc}`;
@@ -108,7 +121,34 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
         }
     }
     
-    // Отложенная загрузка двери, что бы кнопка прогрузилась
+    // Блокируем кнопку до завершения загрузки ресурсов
+    redButton.style.pointerEvents = 'none';
+    
+    // Предзагрузка кадров анимации
+    const effectFrameCount = 10;
+    const animFrameCount = 12;
+    
+    Promise.all([
+        preloadAnimationFrames(effectFrameCount, 'effect'),
+        preloadAnimationFrames(animFrameCount, 'anim')
+    ]).then(() => {
+        // Разблокируем кнопку после загрузки
+        redButton.style.pointerEvents = 'auto';
+        
+        // Добавляем обработчик клика
+        redButton.addEventListener("click", function() {
+            redButton.src = "/get-image?file=" + buttonPressedSrc;
+            startEffect();
+            setTimeout(() => {
+                redButton.src = "/get-image?file=" + buttonSrc;
+            }, 1000);
+        });
+    }).catch(error => {
+        console.error('Ошибка загрузки кадров:', error);
+        redButton.style.pointerEvents = 'auto';
+    });
+
+    // Загрузка дверей после загрузки кнопки
     redButton.onload = function() {
         doors.src = `/get-image?file=${doorFile}`;
         for (const style in doorsStyle) {
@@ -118,24 +158,15 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
         }
     }
     
-    // Анимация красной кнопки
-    redButton.addEventListener("click", function () {
-        redButton.src = "/get-image?file=" + buttonPressedSrc;
-        startEffect();
-        setTimeout(() => {
-            redButton.src = "/get-image?file=" + buttonSrc;
-        }, 1000);
-    });
-
     document.getElementById("flex-container").appendChild(redButton);
 
     const frameRate = 100;
-    // Обработка анимации эффекта
     let animationPlayed = false;
 
     function startEffect() {
         const effectframeCount = 10; 
         if (animationPlayed) return;
+        animationPlayed = true;
         const effect = document.getElementById("effect");
     
         let currentFrame = 0;
@@ -154,7 +185,6 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     }
 
     function startSecondAnimation() {
-        
         let currentFrame = 0;
         const animFrameCount = 12; 
         
