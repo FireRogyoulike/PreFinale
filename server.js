@@ -8,10 +8,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const baseFolder = path.join(__dirname, 'private/wno3Glo6yZqHr4V/assets');
-const effectFolder = path.join(baseFolder, 'effect');
 
 function validateInput(input) {
-    //46572301
     const validCombination = "46572301";
     return input.length === validCombination.length && input === validCombination;
 }
@@ -46,18 +44,14 @@ function isValidFilePath(base, requested) {
 
 app.get('/get-image', (req, res) => {
     const { file } = req.query;
-    
     if (!file || !isValidFilePath(baseFolder, file)) {
         return res.status(403).json({ error: "Access denied" });
     }
-
     const filePath = path.join(baseFolder, file);
     res.sendFile(filePath, (err) => {
         if (err) res.status(404).json({ error: "File not found" });
     });
 });
-
-const animFolder = path.join(baseFolder, 'anim');
 
 app.get('/get-frame', (req, res) => {
     const { frame, type } = req.query;
@@ -86,6 +80,29 @@ app.get('/get-frame', (req, res) => {
     res.sendFile(filePath, (err) => {
         if (err) res.status(404).json({ error: "Frame not found" });
     });
+});
+
+// Новый эндпоинт, отдающий список безопасных путей к кадрам
+app.get('/get-animation', (req, res) => {
+    const { type } = req.query;
+    if (!type || !['effect', 'anim'].includes(type)) {
+        return res.status(400).json({ error: "Invalid animation type" });
+    }
+
+    let frameCount;
+    if (type === "effect") {
+        frameCount = 10;
+    } else {
+        frameCount = 12;
+    }
+
+    // Отдаём безопасные URL, которые всё равно идут через /get-frame
+    const frames = [];
+    for (let i = 0; i < frameCount; i++) {
+        frames.push(`/get-frame?frame=${i}&type=${type}`);
+    }
+
+    res.json({ frames });
 });
 
 app.listen(port, () => {

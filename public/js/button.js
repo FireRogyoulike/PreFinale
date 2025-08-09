@@ -1,7 +1,7 @@
 import { segmentList } from './segments.js';
 import { state } from './visibility.js';
 
-const button = document.getElementById("button")
+const button = document.getElementById("button");
 const segmentCode = [
     document.getElementById("segment_1"),
     document.getElementById("segment_2"),
@@ -11,13 +11,15 @@ const segmentCode = [
     document.getElementById("segment_6"),
     document.getElementById("segment_7"),
     document.getElementById("segment_8"),
-]
+];
 
-const defaultButtonSrc = button.src; // Исходное изображение кнопки
-const successButtonSrc = "assets/buttonGreen.png"; // Изображение при успешном ответе
-const errorButtonSrc = "assets/buttonRed.png"; // Изображение при ошибке
+const defaultButtonSrc = button.src;
+const successButtonSrc = "assets/buttonGreen.png";
+const errorButtonSrc = "assets/buttonRed.png";
 
-let isButtonActive = true; 
+let isButtonActive = true;
+let preloadedEffectFrames = [];
+let preloadedAnimFrames = [];
 
 button.addEventListener('click', () => {
     if (state && isButtonActive) {
@@ -54,7 +56,6 @@ function sendToServer(code) {
     });
 }
 
-// Функция смены спрайта кнопки
 function changeButtonSprite(isWillDelete, newSrc) {
     button.src = newSrc;
     button.style.pointerEvents = "none";
@@ -62,80 +63,61 @@ function changeButtonSprite(isWillDelete, newSrc) {
         if (isWillDelete){
             document.querySelectorAll('.hidden').forEach(element => element.remove());
         } else {
-        button.src = defaultButtonSrc; // Возвращение кнопки в исходное состояние
-        button.style.pointerEvents = "auto"; // Разблокировка кнопки
-        isButtonActive = true; // Кнопка снова активна
+            button.src = defaultButtonSrc;
+            button.style.pointerEvents = "auto";
+            isButtonActive = true;
         }
     }, 800);
 }
 
-// Функция предзагрузки кадров анимации
-function preloadAnimationFrames(frameCount, type) {
-    const promises = [];
-    for (let i = 0; i < frameCount; i++) {
-        promises.push(new Promise((resolve, reject) => {
-            const img = new Image();
-            img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error(`Failed to load frame ${i} for ${type}`));
-            img.src = `/get-frame?frame=${i}&type=${type}`;
-        }));
-    }
-    return Promise.all(promises);
+// Новый вариант предзагрузки
+function preloadAnimationFrames(type) {
+    return fetch(`/get-animation?type=${type}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.frames) throw new Error(`No frames for type ${type}`);
+            return Promise.all(
+                data.frames.map(src => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(img);
+                        img.onerror = () => reject(new Error(`Failed to load ${src}`));
+                        img.src = src;
+                    });
+                })
+            );
+        });
 }
 
 function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonStyle, effectStyle, animStyle) {
     const doors = document.getElementById("doors");
     const doorZ = window.getComputedStyle(doors).getPropertyValue('z-index');
 
-    // Создаем элементы эффекта и анимации
     const effect = document.createElement("img");
     effect.id = "effect";
     effect.classList.add("pixel-art");
-    for (const style in effectStyle) {
-        if (effectStyle.hasOwnProperty(style)) {
-            effect.style[style] = effectStyle[style];
-        }
-    }
+    Object.assign(effect.style, effectStyle);
     document.getElementById("flex-container").appendChild(effect);
 
-    // Анимация
     const anim = document.createElement("img");
     anim.id = "anim";
     anim.classList.add("pixel-art");
-    for (const style in animStyle) {
-        if (animStyle.hasOwnProperty(style)) {
-            anim.style[style] = animStyle[style];
-        }
-    }
+    Object.assign(anim.style, animStyle);
     document.getElementById("flex-container").appendChild(anim);
 
-    // Создаем красную кнопку
     const redButton = document.createElement("img");
     redButton.id = "red_button";
     redButton.src = `/get-image?file=${buttonSrc}`;
     redButton.style.zIndex = parseInt(doorZ) - 1;
     redButton.classList.add("pixel-art");
-    for (const style in buttonStyle) {
-        if (buttonStyle.hasOwnProperty(style)) {
-            redButton.style[style] = buttonStyle[style];
-        }
-    }
-    
-    // Блокируем кнопку до завершения загрузки ресурсов
+    Object.assign(redButton.style, buttonStyle);
     redButton.style.pointerEvents = 'none';
     
-    // Предзагрузка кадров анимации
-    const effectFrameCount = 10;
-    const animFrameCount = 12;
-    
     Promise.all([
-        preloadAnimationFrames(effectFrameCount, 'effect'),
-        preloadAnimationFrames(animFrameCount, 'anim')
+        preloadAnimationFrames('effect').then(frames => { preloadedEffectFrames = frames; }),
+        preloadAnimationFrames('anim').then(frames => { preloadedAnimFrames = frames; })
     ]).then(() => {
-        // Разблокируем кнопку после загрузки
         redButton.style.pointerEvents = 'auto';
-        
-        // Добавляем обработчик клика
         redButton.addEventListener("click", function() {
             redButton.src = "/get-image?file=" + buttonPressedSrc;
             startEffect();
@@ -148,14 +130,9 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
         redButton.style.pointerEvents = 'auto';
     });
 
-    // Загрузка дверей после загрузки кнопки
     redButton.onload = function() {
         doors.src = `/get-image?file=${doorFile}`;
-        for (const style in doorsStyle) {
-            if (doorsStyle.hasOwnProperty(style)) {
-                doors.style[style] = doorsStyle[style]; 
-            }
-        }
+        Object.assign(doors.style, doorsStyle);
     }
     
     document.getElementById("flex-container").appendChild(redButton);
@@ -164,40 +141,31 @@ function applyChanges(doorFile, doorsStyle, buttonSrc, buttonPressedSrc, buttonS
     let animationPlayed = false;
 
     function startEffect() {
-        const effectframeCount = 10; 
         if (animationPlayed) return;
         animationPlayed = true;
-        const effect = document.getElementById("effect");
-    
         let currentFrame = 0;
-    
-        const animationInterval = setInterval(() => {
-            if (currentFrame >= effectframeCount) {
-                clearInterval(animationInterval);
+        const interval = setInterval(() => {
+            if (currentFrame >= preloadedEffectFrames.length) {
+                clearInterval(interval);
                 effect.remove();
                 startSecondAnimation();
                 return;
             }
-            
-            effect.src = `/get-frame?frame=${currentFrame}&type=effect`;
+            effect.src = preloadedEffectFrames[currentFrame].src;
             currentFrame++;
         }, frameRate);
     }
 
     function startSecondAnimation() {
         let currentFrame = 0;
-        const animFrameCount = 12; 
-        
         document.getElementById("fly").remove();
-
-        const animationInterval = setInterval(() => {
-            if (currentFrame >= animFrameCount) {
-                clearInterval(animationInterval);
+        const interval = setInterval(() => {
+            if (currentFrame >= preloadedAnimFrames.length) {
+                clearInterval(interval);
                 anim.remove();
                 return;
             }
-    
-            anim.src = `/get-frame?frame=${currentFrame}&type=anim`;
+            anim.src = preloadedAnimFrames[currentFrame].src;
             currentFrame++;
         }, frameRate);
     }
