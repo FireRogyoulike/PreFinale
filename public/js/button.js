@@ -37,9 +37,7 @@ button.addEventListener('click', () => {
 function sendToServer(code) {
     fetch('/check-code', {  
         method: 'POST',  
-        headers: {  
-            'Content-Type': 'application/json'  
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: code })
     })
     .then(response => response.json())
@@ -70,7 +68,6 @@ function changeButtonSprite(isWillDelete, newSrc) {
     }, 800);
 }
 
-// Новый вариант предзагрузки
 function preloadAnimationFrames(type) {
     return fetch(`/get-animation?type=${type}`)
         .then(res => res.json())

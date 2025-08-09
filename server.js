@@ -16,11 +16,9 @@ function validateInput(input) {
 
 app.post('/check-code', (req, res) => {
     const { message } = req.body;
-
     if (!message) {
         return res.status(400).json({ error: 'No input provided' });
     }
-
     if (validateInput(message)) {
         return res.json({
             valid: true,
@@ -82,7 +80,7 @@ app.get('/get-frame', (req, res) => {
     });
 });
 
-// Новый эндпоинт, отдающий список безопасных путей к кадрам
+// Новый эндпоинт для загрузки списка кадров
 app.get('/get-animation', (req, res) => {
     const { type } = req.query;
     if (!type || !['effect', 'anim'].includes(type)) {
@@ -96,7 +94,7 @@ app.get('/get-animation', (req, res) => {
         frameCount = 12;
     }
 
-    // Отдаём безопасные URL, которые всё равно идут через /get-frame
+    // Генерация безопасных URL
     const frames = [];
     for (let i = 0; i < frameCount; i++) {
         frames.push(`/get-frame?frame=${i}&type=${type}`);
